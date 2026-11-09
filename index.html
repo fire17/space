@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="robots" content="noindex,nofollow">
 <link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#070820">
@@ -108,6 +109,38 @@
   @keyframes bounce{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-10px) rotate(6deg)}}
   [hidden]{display:none!important}
 
+  /* ---- v0.3: tilt / wheel picker + settings ---- */
+  .steerPick{display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap}
+  .steerPick .spT{font-size:14px;font-weight:700;color:var(--muted)}
+  .steerPick button{flex-direction:row;gap:5px;font-size:16px;padding:6px 12px}
+  .steerPick button.on{background:#25307a;border-color:var(--gold);box-shadow:0 0 12px #ffd23f77}
+  .steerPick .ctr{font-size:14px;padding:6px 10px}
+  .tiltMsg{font-size:14px;font-weight:700;color:var(--gold);text-align:center}
+  .hdrBtn.on{border-color:var(--gold)}
+  .setOv{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:#05061acc;padding:12px}
+  .setCard{direction:rtl;width:min(100%,440px);max-height:100%;overflow:auto;background:linear-gradient(180deg,#1c2150,#12153a);border:2px solid var(--blue);border-radius:22px;padding:12px 16px;box-shadow:0 0 40px #5ee7ff44;display:flex;flex-direction:column;gap:10px;animation:pop .25s ease-out}
+  .setHead{display:flex;justify-content:space-between;align-items:center}
+  .setHead h2{font-size:22px;font-weight:900}
+  .setCard button{flex-direction:row;gap:6px;font-size:16px;padding:8px 14px}
+  .setCard .setX{width:44px;height:44px;padding:0;justify-content:center;font-size:20px}
+  .setRow{display:grid;grid-template-columns:6.2em minmax(0,1fr) 3.2em;gap:10px;align-items:center;font-size:17px;font-weight:700}
+  .setRow output{font-size:15px;color:var(--muted);text-align:center}
+  .setRow input[type=range]{width:100%;height:34px;accent-color:var(--blue);cursor:pointer;touch-action:none}
+  .setBtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .setBtns .again{font-size:18px}
+  .setCard #setMute.on{background:#5a1630;border-color:var(--red)}
+  @media (max-width:440px){ .hdrEnd{gap:5px} .mute{width:36px;height:36px;font-size:16px} }
+  @media (orientation:landscape) and (max-height:500px){
+    .steerPick button{font-size:14px;padding:3px 10px}
+    .steerPick .spT{font-size:12px}
+    .setCard{padding:8px 14px;gap:6px}
+    .setHead h2{font-size:18px}
+    .setRow{font-size:15px}
+    .setRow input[type=range]{height:26px}
+    .setCard button{font-size:14px;padding:5px 12px}
+    .setCard .setX{width:36px;height:36px}
+  }
+
   /* ---- spaceship buttons ---- */
   .controls{direction:ltr;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:7px}
   button{font-family:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:7px 3px;font-size:12px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;position:relative;overflow:hidden}
@@ -186,9 +219,12 @@
 <body>
 <div class="app">
   <header>
-    <h1>🚀 <span>חללית</span><small>גרסה 0.2</small></h1>
+    <h1>🚀 <span>חללית</span><small>גרסה 0.3</small></h1>
     <div class="hdrEnd">
       <div class="cup" id="cup" title="גביע">🏆</div>
+      <button class="mute hdrBtn" id="hTilt" title="הטיה / הגה" hidden>📱</button>
+      <button class="mute hdrBtn" id="hCenter" title="🎯 מרכז" hidden>🎯</button>
+      <button class="mute hdrBtn" id="hSet" title="הגדרות">⚙️</button>
       <button class="mute" id="mute" title="צלילים">🔊</button>
     </div>
   </header>
@@ -259,6 +295,23 @@
   </div>
 </div>
 
+<div class="setOv" id="setOv" hidden>
+  <div class="setCard" id="setCard" role="dialog" aria-label="הגדרות">
+    <div class="setHead"><h2>⚙️ הגדרות</h2><button class="setX" id="setClose" title="סגור">✖</button></div>
+    <div class="setRow"><label for="vMaster">🔊 עוצמה</label><input type="range" id="vMaster" min="0" max="100" step="5"><output id="oMaster"></output></div>
+    <div class="setRow"><label for="vSfx">💥 צלילים</label><input type="range" id="vSfx" min="0" max="100" step="5"><output id="oSfx"></output></div>
+    <div class="setRow"><label for="vMusic">🎵 מוזיקה</label><input type="range" id="vMusic" min="0" max="100" step="5"><output id="oMusic"></output></div>
+    <div class="setRow"><label for="vEngine">🚀 מנוע</label><input type="range" id="vEngine" min="0" max="100" step="5"><output id="oEngine"></output></div>
+    <div class="setBtns"><button id="setMute">🔇 השתקה</button></div>
+    <div class="steerPick" id="setSteer" hidden>
+      <span class="spT">איך מסובבים?</span>
+      <button id="setTilt">📱 הטיה</button><button id="setWheel">🎡 הגה</button><button class="ctr" id="setCenter">🎯 מרכז</button>
+    </div>
+    <div class="tiltMsg" hidden></div>
+    <div class="setBtns"><button id="setReset">↺ ברירת מחדל</button><button class="again" id="setOk">👍 סגור</button></div>
+  </div>
+</div>
+
 <script>
 "use strict";
 const $ = id => document.getElementById(id);
@@ -267,20 +320,58 @@ const rand = (a, b) => a + Math.random() * (b - a);
 const pick = arr => arr[Math.floor(Math.random() * arr.length)];
 const TAU = Math.PI * 2;
 
+/* ================= Config (v0.3) ================= */
+const CONFIG = {
+  // ---- tilt steering: the whole phone / tablet is the wheel ----
+  TILT_DEAD_DEG: 3,       // tilt (degrees from the calibrated centre) that still counts as "straight": steer is exactly 0
+  TILT_FULL_DEG: 30,      // tilt (degrees) that reaches full lock (±TILT_LOCK)
+  TILT_SMOOTH: 12,        // smoothing rate per second (higher = follows the tilt faster, lower = calmer)
+  TILT_LOCK: 1.6,         // full-lock steer from tilt (the same as holding an arrow key)
+  TILT_DEFAULT_MS: 1500,  // no saved choice: tilt is used if real readings arrive this soon after loading
+  // ---- settings ⚙️ defaults (volumes in %) ----
+  SETTINGS_KEY: "spaceSettings",
+  SETTINGS_DEFAULTS: { master: 30, sfx: 100, music: 100, engine: 100, muted: false, steer: null }   // steer: "tilt" / "wheel" / null (= automatic)
+};
+const VOL_KEYS = ["master", "sfx", "music", "engine"];
+function loadSettings() {
+  const d = CONFIG.SETTINGS_DEFAULTS, out = Object.assign({}, d);
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem(CONFIG.SETTINGS_KEY) || "null"); } catch (e) { s = null; }
+  if (!s || typeof s !== "object" || Array.isArray(s)) return out;
+  for (const k of VOL_KEYS) {
+    const v = s[k];
+    if (typeof v === "number" && isFinite(v)) out[k] = Math.round(clamp(v, 0, 100));
+  }
+  if (typeof s.muted === "boolean") out.muted = s.muted;
+  if (s.steer === "tilt" || s.steer === "wheel") out.steer = s.steer;
+  return out;
+}
+const S = loadSettings();
+function saveSettings() { try { localStorage.setItem(CONFIG.SETTINGS_KEY, JSON.stringify(S)); } catch (e) {} }
+
 /* ================= Sound ================= */
-let AC = null, master = null, muted = false, engine = null;
+// every sound family has its own GainNode -> master -> speakers
+let AC = null, master = null, muted = S.muted, engine = null, bus = null;
 function ac() {
   if (!AC) {
     try {
       AC = new (window.AudioContext || window.webkitAudioContext)();
       master = AC.createGain();
       master.connect(AC.destination);
-    } catch (e) { AC = null; }
+      bus = {};
+      for (const k of ["sfx", "music", "engine"]) { bus[k] = AC.createGain(); bus[k].connect(master); }
+      applyAudio();
+    } catch (e) { AC = null; master = null; bus = null; }
   }
   if (AC && AC.state === "suspended") AC.resume().catch(() => {});
   return AC;
 }
-function beep(freq, dur, type = "square", vol = 0.15, slideTo = 0) {
+function applyAudio() {
+  if (!master || !bus) return;
+  master.gain.value = muted ? 0 : S.master / 100;
+  for (const k in bus) bus[k].gain.value = S[k] / 100;
+}
+function beep(freq, dur, type = "square", vol = 0.15, slideTo = 0, fam = "sfx") {
   const a = ac();
   if (!a || muted) return;
   const o = a.createOscillator(), g = a.createGain(), t = a.currentTime;
@@ -289,7 +380,7 @@ function beep(freq, dur, type = "square", vol = 0.15, slideTo = 0) {
   if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
   g.gain.setValueAtTime(vol, t);
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  o.connect(g); g.connect(master);
+  o.connect(g); g.connect(bus[fam] || master);
   o.start(t); o.stop(t + dur + 0.02);
 }
 const later = (ms, fn) => setTimeout(fn, ms);
@@ -325,7 +416,7 @@ function engineOn() {
   if (!a || engine) return;
   const o = a.createOscillator(), g = a.createGain();
   o.type = "triangle"; o.frequency.value = 60; g.gain.value = 0;
-  o.connect(g); g.connect(master); o.start();
+  o.connect(g); g.connect(bus.engine); o.start();
   engine = { o, g };
 }
 function vibrate(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
@@ -337,9 +428,9 @@ const MEL = [659, 784, 880, 784, 659, 523, 587, 659, 0, 659, 587, 523, 587, 659,
 const BASS = [131, 196, 175, 196, 220, 196, 175, 131];
 function musicTick() {
   const f = MEL[mStep % MEL.length];
-  if (f) beep(f, .15, "square", .04);
-  if (mStep % 2 === 0) beep(BASS[(mStep >> 2) % BASS.length], .22, "triangle", .09);
-  if (mStep % 4 === 2) beep(3000, .02, "square", .015);
+  if (f) beep(f, .15, "square", .04, 0, "music");
+  if (mStep % 2 === 0) beep(BASS[(mStep >> 2) % BASS.length], .22, "triangle", .09, 0, "music");
+  if (mStep % 4 === 2) beep(3000, .02, "square", .015, 0, "music");
   mStep++;
 }
 
@@ -528,12 +619,11 @@ function act(k) {
   }
 }
 for (const k in BTN) $(BTN[k]).onclick = () => { act(k); $(BTN[k]).blur(); };
-$("mute").onclick = () => {
-  muted = !muted;
-  $("mute").textContent = muted ? "🔇" : "🔊";
-  if (ac() && master) master.gain.value = muted ? 0 : 1;
-  $("mute").blur();
-};
+function setMuted(on) {
+  muted = !!on; S.muted = muted; saveSettings();
+  ac(); applyAudio(); syncSettingsUI();
+}
+$("mute").onclick = () => { setMuted(!muted); $("mute").blur(); };
 
 function takePhoto() {
   CD.cam = CDLEN.cam; G.flash = 0.9; sfx.camera();
@@ -568,6 +658,7 @@ const keyUp = {
   ArrowDown:  () => { brakeKey = false; press($("brake"), false); }
 };
 document.addEventListener("keydown", e => {
+  if (setOpen) { if (e.code === "Escape") { e.preventDefault(); closeSettings(); } return; }
   const fn = keyDown[e.code];
   if (!fn) return;
   e.preventDefault();
@@ -582,6 +673,190 @@ window.addEventListener("blur", () => {
   keySteer = 0; gasKey = brakeKey = padL = padR = false;
   press($("gas"), false); press($("brake"), false);
 });
+
+/* ================= Tilt steering (v0.3): the whole phone / tablet is the wheel ================= */
+// The angle we use is "how far the user's RIGHT edge of the screen has gone down", in degrees
+// (positive = steer right = the ship turns clockwise, like the right arrow key).
+// From the DeviceOrientation angles (beta = front/back about the device x axis, gamma = left/right
+// about the device y axis) the world "up" direction seen from the device is
+//   up = (-sin(gamma)·cos(beta), sin(beta), cos(gamma)·cos(beta))   (device x = right, y = top, z = out of the screen)
+// so  rightDown = sin(gamma)·cos(beta)  is how much the device's own right edge points down, and
+//     topUp     = sin(beta)              is how much the device's own top edge points up.
+// Which device edge is the user's right depends on the screen rotation (screen.orientation.angle,
+// or the older window.orientation; the angle is how far the device was turned counter-clockwise):
+//   0   portrait            : user's right = device right  -> asin(rightDown)   (= gamma when held flat-ish)
+//   180 portrait upside-down: user's right = device left   -> -asin(rightDown)
+//   90  landscape, top edge on the user's LEFT : user's right = device bottom -> asin(topUp)   (= beta)
+//   270 landscape, top edge on the user's RIGHT: user's right = device top    -> -asin(topUp)  (= -beta)
+// The game is top-down with no up/down axis, so only left/right tilt is used (front/back does nothing).
+const tiltCoarse = (() => { try { return matchMedia("(pointer:coarse)").matches; } catch (e) { return false; } })();
+// iOS / iPadOS 13+ needs a permission tap (desktop Safari also has the function but no sensor, so touch screens only)
+const tiltNeedsPerm = tiltCoarse && typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function";
+const tiltLoadAt = performance.now();
+let tiltPref = S.steer;                                     // "tilt" / "wheel" (only a choice the user tapped) / null
+let tiltMode = tiltPref === "tilt" || (tiltPref === null && tiltNeedsPerm);   // iOS: asked on the start tap
+let tiltSeen = false, tiltAt = -1e9, tiltRaw = 0, tiltCenter = null, tiltPerm = tiltNeedsPerm ? "ask" : "none", tiltCheckT = 0;
+function tiltSave(v) { tiltPref = v; S.steer = v; saveSettings(); }
+function screenAngle() {
+  let a = 0;
+  try {
+    if (screen.orientation && typeof screen.orientation.angle === "number") a = screen.orientation.angle;
+    else if (typeof window.orientation === "number") a = window.orientation;   // older iOS: 0, 90, -90, 180
+  } catch (e) { a = 0; }
+  return ((Math.round(a / 90) * 90) % 360 + 360) % 360;   // 0 / 90 / 180 / 270
+}
+function onTilt(e) {
+  const b = e && e.beta, g = e && e.gamma;
+  if (typeof b !== "number" || typeof g !== "number" || !isFinite(b) || !isFinite(g)) return;   // desktop: nulls, ignore
+  const D = Math.PI / 180, ang = screenAngle();
+  const rightDown = clamp(Math.sin(g * D) * Math.cos(b * D), -1, 1), topUp = clamp(Math.sin(b * D), -1, 1);
+  const deg = (ang === 0 ? Math.asin(rightDown) : ang === 180 ? -Math.asin(rightDown)
+             : ang === 90 ? Math.asin(topUp) : -Math.asin(topUp)) / D;
+  tiltRaw = deg; tiltAt = performance.now();
+  if (tiltPerm === "ask") tiltPerm = "granted";              // readings arrive without a prompt (Android)
+  if (tiltCenter === null) tiltCenter = deg;               // calibration: this reading is "straight ahead"
+  if (!tiltSeen) {
+    tiltSeen = true;
+    if (tiltPref === null && tiltAt - tiltLoadAt < CONFIG.TILT_DEFAULT_MS) tiltMode = true;   // default: tilt ON when the sensor answers
+    syncTiltUI();
+  }
+}
+window.addEventListener("deviceorientation", onTilt);
+function tiltCalibrate() { tiltCenter = null; }            // the next reading becomes the new centre
+// only after a real reading (desktop: never); if the sensor goes quiet for 2 s the wheel springs back as usual
+const tiltActive = () => tiltMode && tiltCenter !== null && performance.now() - tiltAt < 2000;
+// the steering the tilt asks for: exactly 0 inside the dead zone
+function tiltTarget() {
+  if (tiltCenter === null) return 0;
+  const d = tiltRaw - tiltCenter, a = Math.abs(d);
+  if (a <= CONFIG.TILT_DEAD_DEG) return 0;
+  return Math.sign(d) * clamp((a - CONFIG.TILT_DEAD_DEG) / (CONFIG.TILT_FULL_DEG - CONFIG.TILT_DEAD_DEG), 0, 1) * CONFIG.TILT_LOCK;
+}
+// exponential smoothing toward the target; back inside the dead zone it lands on exactly 0
+function tiltStep(s, dt) {
+  const t = tiltTarget();
+  s += (t - s) * (1 - Math.exp(-dt * CONFIG.TILT_SMOOTH));
+  if (t === 0 && Math.abs(s) < 0.03) s = 0;
+  return clamp(s, -CONFIG.TILT_LOCK, CONFIG.TILT_LOCK);
+}
+function tiltMsg(text) {
+  document.querySelectorAll(".tiltMsg").forEach(m => { m.textContent = text || ""; m.hidden = !text; });
+  if (text) toast(text);
+}
+function tiltFallback(text) {                              // back to the on-screen wheel
+  tiltMode = false; tiltSave("wheel"); tiltUnlock(); tiltMsg(text); syncTiltUI();
+}
+// no reading soon after tilt was chosen = no sensor on this device (loud = the user tapped "tilt" just now)
+function tiltWatch(loud) {
+  clearTimeout(tiltCheckT);
+  tiltCheckT = setTimeout(() => {
+    if (tiltMode && !tiltSeen) tiltFallback(loud ? "📱 אין חיישן הטיה במכשיר הזה, משתמשים בהגה 🎡" : "");
+  }, 1300);
+}
+// iOS 13+: must be called straight from a tap (the toggle or the take-off button)
+const TILT_DENIED = "📱 אין אישור להטיה, משתמשים בהגה 🎡";
+function tiltAskPermission(loud) {
+  if (!tiltNeedsPerm || tiltSeen || tiltPerm === "granted") { if (!tiltSeen) tiltWatch(loud); return; }
+  let p;
+  try { p = DeviceOrientationEvent.requestPermission(); } catch (e) { p = null; }
+  if (!p || !p.then) { tiltWatch(loud); return; }
+  p.then(r => {
+    if (r === "denied") { tiltPerm = "denied"; tiltFallback(TILT_DENIED); return; }
+    if (r === "granted") tiltPerm = "granted";
+    tiltCalibrate(); tiltWatch(loud); syncTiltUI();       // wait for a real reading
+  }).catch(() => { tiltPerm = "denied"; tiltFallback(TILT_DENIED); });
+}
+// nice to have: when installed / fullscreen, keep the screen from rotating while the device is tilted. Failing is fine.
+function tryLockOrientation() {
+  try {
+    const fs = document.fullscreenElement || document.webkitFullscreenElement;
+    const inst = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone;
+    if (!(fs || inst) || !screen.orientation || typeof screen.orientation.lock !== "function") return;
+    const type = String(screen.orientation.type || "").indexOf("portrait") === 0 ? "portrait" : "landscape";
+    const p = screen.orientation.lock(type);
+    if (p && p.catch) p.catch(() => {});
+  } catch (e) {}
+}
+function tiltUnlock() { try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {} }
+function setTiltMode(on) {
+  tiltMsg("");
+  tiltSave(on ? "tilt" : "wheel");
+  tiltMode = on;
+  if (on) { tiltAskPermission(true); tiltCalibrate(); tryLockOrientation(); }
+  else tiltUnlock();
+  syncTiltUI();
+}
+const el = id => document.getElementById(id);              // may be missing (the start card is not always shown)
+function syncTiltUI() {
+  const avail = tiltSeen || tiltNeedsPerm || tiltCoarse;   // desktop with no sensor: nothing is shown
+  const show = (id, v) => { const e = el(id); if (e) e.hidden = !v; };
+  const on = (id, v) => { const e = el(id); if (e) e.classList.toggle("on", v); };
+  show("steerPick", avail); show("setSteer", avail); show("hTilt", avail);
+  show("hCenter", avail && tiltMode); show("sCenter", tiltMode); show("setCenter", tiltMode);
+  on("sTilt", tiltMode); on("sWheel", !tiltMode); on("setTilt", tiltMode); on("setWheel", !tiltMode);
+  $("hTilt").textContent = tiltMode ? "📱" : "🎡";
+  $("hTilt").title = tiltMode ? "📱 הטיה" : "🎡 הגה";
+  show("howTilt", tiltMode); show("howWheel", !tiltMode);
+}
+function recentre(btn) {
+  sfx.click(); tiltCalibrate(); toast("🎯 החללית ישרה");
+  if (btn) btn.blur();
+}
+$("hTilt").onclick = () => { sfx.click(); $("hTilt").blur(); setTiltMode(!tiltMode); };
+$("hCenter").onclick = () => recentre($("hCenter"));
+$("setTilt").onclick = () => { sfx.click(); $("setTilt").blur(); setTiltMode(true); };
+$("setWheel").onclick = () => { sfx.click(); $("setWheel").blur(); setTiltMode(false); };
+$("setCenter").onclick = () => recentre($("setCenter"));
+// the screen turned: the axis changed, so the centre is taken again from the next reading
+try { if (screen.orientation && screen.orientation.addEventListener) screen.orientation.addEventListener("change", tiltCalibrate); } catch (e) {}
+window.addEventListener("orientationchange", tiltCalibrate);
+// stored "tilt" but no sensor answers (for example a desktop): quietly use the wheel, keep the choice
+setTimeout(() => { if (tiltMode && !tiltSeen && !tiltNeedsPerm) { tiltMode = false; syncTiltUI(); } }, CONFIG.TILT_DEFAULT_MS);
+
+/* ================= Settings ⚙️ (v0.3) ================= */
+let setOpen = false, setWasPaused = true;
+const SLIDERS = { master: ["vMaster", "oMaster"], sfx: ["vSfx", "oSfx"], music: ["vMusic", "oMusic"], engine: ["vEngine", "oEngine"] };
+function syncSettingsUI() {
+  for (const k in SLIDERS) { $(SLIDERS[k][0]).value = S[k]; $(SLIDERS[k][1]).textContent = S[k] + "%"; }
+  $("mute").textContent = muted ? "🔇" : "🔊";
+  $("setMute").textContent = muted ? "🔊 להחזיר צלילים" : "🔇 השתקה";
+  $("setMute").classList.toggle("on", muted);
+}
+for (const k in SLIDERS) {
+  $(SLIDERS[k][0]).addEventListener("input", e => {
+    S[k] = Math.round(clamp(+e.target.value || 0, 0, 100));
+    ac(); applyAudio(); syncSettingsUI(); saveSettings();
+  });
+  $(SLIDERS[k][0]).addEventListener("change", () => { if (k !== "music" && k !== "engine") sfx.coin(); });
+}
+function openSettings() {
+  if (setOpen) return;
+  setOpen = true; setWasPaused = G.paused; G.paused = true;
+  keySteer = 0; gasKey = brakeKey = false; press($("gas"), false); press($("brake"), false);
+  syncSettingsUI(); syncTiltUI();
+  $("setOv").hidden = false;
+}
+function closeSettings() {
+  if (!setOpen) return;
+  setOpen = false; $("setOv").hidden = true;
+  G.paused = setWasPaused || $("over").classList.contains("show");
+}
+$("hSet").onclick = () => { sfx.click(); $("hSet").blur(); openSettings(); };
+$("setClose").onclick = () => { sfx.click(); closeSettings(); };
+$("setOk").onclick = () => { sfx.click(); closeSettings(); };
+$("setOv").addEventListener("pointerdown", e => { if (e.target === $("setOv")) closeSettings(); });
+$("setMute").onclick = () => { setMuted(!muted); $("setMute").blur(); };
+$("setReset").onclick = () => {
+  Object.assign(S, CONFIG.SETTINGS_DEFAULTS);
+  muted = S.muted; saveSettings();
+  tiltPref = null; tiltMsg("");
+  tiltMode = tiltSeen || tiltNeedsPerm;                   // automatic again: tilt if the sensor answers
+  if (tiltMode) tiltCalibrate(); else tiltUnlock();
+  ac(); applyAudio(); syncSettingsUI(); syncTiltUI();
+  sfx.click(); $("setReset").blur(); toast("↺ ברירת מחדל");
+};
+syncSettingsUI();
+syncTiltUI();
 
 /* ================= Scenes ================= */
 function setScene(s) {
@@ -610,6 +885,7 @@ function backToFly() {
     cam.x = ship.x; cam.y = ship.y;
   }
   setScene("fly");
+  tiltCalibrate();
   sfx.takeoff();
 }
 
@@ -675,8 +951,9 @@ const distShip = o => Math.hypot(wd(o.x - ship.x), wd(o.y - ship.y));
 function updateFly(dt) {
   const live = !G.paused;
   const gas = live && (gasTouch || gasKey), brake = live && (brakeTouch || brakeKey);
-  if (!wheelDrag) {
+  if (!wheelDrag) {                                        // a finger on the wheel always wins (also in tilt mode)
     if (keySteer && live) steer += (keySteer * 1.6 - steer) * Math.min(1, dt * 10);
+    else if (live && tiltActive()) steer = tiltStep(steer, dt);
     else steer *= Math.pow(0.9, dt * 60);
   }
   if (live) {
@@ -867,6 +1144,7 @@ function supportAt(x, h) {
 function updateWalk(dt) {
   if (!wheelDrag) {
     if (keySteer && !G.paused) steer += (keySteer * 1.2 - steer) * Math.min(1, dt * 10);
+    else if (!G.paused && tiltActive()) steer = tiltStep(steer, dt);
     else steer *= Math.pow(0.9, dt * 60);
   }
   const w = WK, a = w.a, s = w.s;
@@ -959,6 +1237,7 @@ function useStation() {
 function updateInside(dt) {
   if (!wheelDrag) {
     if (keySteer && !G.paused) steer += (keySteer * 1.2 - steer) * Math.min(1, dt * 10);
+    else if (!G.paused && tiltActive()) steer = tiltStep(steer, dt);
     else steer *= Math.pow(0.9, dt * 60);
   }
   IN.s = clamp(Math.min(H / 430, W / 560), 0.55, 1.25);
@@ -996,7 +1275,8 @@ function showCard(kind, info = {}) {
   if (kind === "start") {
     html = `<div class="big">🚀</div><h2>איך טסים?</h2>
       <div class="howto">
-        <div><b>🎡 הגה</b> = מסובבים את החללית</div>
+        <div id="howWheel"><b>🎡 הגה</b> = מסובבים את החללית</div>
+        <div id="howTilt" hidden><b>📱 הטיה</b> = מטים את הטלפון ימינה ושמאלה</div>
         <div><b>🔥 גז</b> = טסים · <b>🛑 ברקס</b> = מאטים</div>
         <div><b>📡 החץ</b> מראה את כוכב הלכת הבא</div>
         <div><b>🛬 מנחת + לאט</b> = אפשר לנחות!</div>
@@ -1004,6 +1284,11 @@ function showCard(kind, info = {}) {
         <div><b>👨‍🚀 פנים החללית</b> = הצוות שלך</div>
       </div>
       <div class="stats"><span>🪐 <b>${progress.visited.length}</b>/8</span><span>⭐ <b>${G.stars}</b></span>${progress.trophy ? "<span>🏆 יש לך גביע!</span>" : ""}</div>
+      <div class="steerPick" id="steerPick" hidden>
+        <span class="spT">איך מסובבים?</span>
+        <button id="sTilt">📱 הטיה</button><button id="sWheel">🎡 הגה</button><button class="ctr" id="sCenter">🎯 מרכז</button>
+      </div>
+      <div class="tiltMsg" hidden></div>
       <div class="cardBtns"><button class="again" id="cBtn">🚀 המראה!</button></div>`;
   } else if (kind === "fact") {
     const p = info.p;
@@ -1022,7 +1307,15 @@ function showCard(kind, info = {}) {
   card.dataset.kind = kind;
   $("over").classList.add("show");
   card.style.animation = "none"; void card.offsetWidth; card.style.animation = "";
+  if (kind === "start") {
+    $("sTilt").onclick = () => { sfx.click(); $("sTilt").blur(); setTiltMode(true); };
+    $("sWheel").onclick = () => { sfx.click(); $("sWheel").blur(); setTiltMode(false); };
+    $("sCenter").onclick = () => recentre($("sCenter"));
+    syncTiltUI();
+  }
   $("cBtn").onclick = () => {
+    if (tiltMode) { tiltAskPermission(false); tryLockOrientation(); }   // iOS: the permission prompt may only come from a tap
+    tiltCalibrate();                                                   // the way the device is held right now = straight ahead
     sfx.click(); engineOn(); hideCard();
     if (kind === "fact") {
       backToFly();
